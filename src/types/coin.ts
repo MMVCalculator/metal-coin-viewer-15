@@ -1,4 +1,3 @@
-
 export interface Coin {
   id: string;
   name: string;
@@ -28,5 +27,24 @@ export interface BitkubTickerResponse {
     isFrozen: number;
     high24hr: number;
     low24hr: number;
+  };
+}
+
+// GeckoTerminal API response type
+export interface GeckoTerminalResponse {
+  data: {
+    id: string;
+    type: string;
+    attributes: {
+      name: string;
+      base_token_price_usd: string;
+      quote_token_price_usd: string;
+      base_token_price_native_quote: string; // kSOLA/KUB price
+      price_change_percentage: {
+        "24h": number;
+      };
+      // Other attributes we might not need right now
+    };
+    // Other data we might not need right now
   };
 }

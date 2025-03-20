@@ -22,11 +22,17 @@ const Index = () => {
         // Check if we got live data
         const kubCoin = data.find(coin => coin.id === "kub");
         const jfinCoin = data.find(coin => coin.id === "jfin");
+        const kSolaCoin = data.find(coin => coin.id === "ksola");
         
-        if (kubCoin?.isLive || jfinCoin?.isLive) {
+        const liveSources = [];
+        if (kubCoin?.isLive) liveSources.push("KUB");
+        if (jfinCoin?.isLive) liveSources.push("JFIN");
+        if (kSolaCoin?.isLive) liveSources.push("kSOLA");
+        
+        if (liveSources.length > 0) {
           toast({
             title: "ราคาเหรียญอัปเดตแล้ว",
-            description: "ราคาเหรียญอัปเดตจาก API ของ Bitkub แล้ว",
+            description: `ราคาเหรียญ ${liveSources.join(", ")} อัปเดตจาก API แล้ว`,
             duration: 3000,
           });
         }

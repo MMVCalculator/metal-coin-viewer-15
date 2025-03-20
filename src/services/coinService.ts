@@ -1,4 +1,4 @@
-import { Coin, BitkubTickerResponse } from "../types/coin";
+import { Coin, BitkubTickerResponse, GeckoTerminalResponse } from "../types/coin";
 
 // Fetch live KUB price from Bitkub API
 export const fetchKubPrice = async (): Promise<{ price: number; change: number } | null> => {
@@ -34,6 +34,46 @@ export const fetchJfinPrice = async (): Promise<{ price: number; change: number 
     return null;
   } catch (error) {
     console.error("Error fetching JFIN price:", error);
+    return null;
+  }
+};
+
+// Fetch kSOLA/KUB price from GeckoTerminal
+export const fetchKSolaPrice = async (): Promise<{ price: number; change: number } | null> => {
+  try {
+    // GeckoTerminal API for kSOLA/KUB pair on Bitkub Chain
+    const response = await fetch("https://api.geckoterminal.com/api/v2/networks/bitkub_chain/pools/0x930dea5a8a1f51320d9fa80de00f334303df1e71");
+    const data: GeckoTerminalResponse = await response.json();
+    
+    if (data && data.data && data.data.attributes) {
+      // Get kSOLA/KUB price
+      const kSolaPriceInKub = parseFloat(data.data.attributes.base_token_price_native_quote || "0");
+      // Get 24h price change percentage
+      const priceChange = data.data.attributes.price_change_percentage["24h"] || 0;
+      
+      // Get KUB/THB price to convert kSOLA to THB
+      const kubData = await fetchKubPrice();
+      
+      if (kubData) {
+        // Calculate kSOLA price in THB: kSOLA/KUB * KUB/THB
+        const kSolaPriceInThb = kSolaPriceInKub * kubData.price;
+        
+        return {
+          price: kSolaPriceInThb,
+          change: priceChange
+        };
+      }
+      
+      // If we can't get KUB price, just return kSOLA/KUB with the change
+      return {
+        price: kSolaPriceInKub,
+        change: priceChange
+      };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Error fetching kSOLA price from GeckoTerminal:", error);
     return null;
   }
 };
@@ -84,15 +124,16 @@ export const getCoins = (): Coin[] => {
   ];
 };
 
-// Get coins with live KUB and JFIN prices if available
+// Get coins with live KUB, JFIN, and kSOLA prices if available
 export const getCoinsWithLiveData = async (): Promise<Coin[]> => {
   const coins = getCoins();
   
   try {
-    // Fetch both KUB and JFIN data in parallel
-    const [kubData, jfinData] = await Promise.all([
+    // Fetch KUB, JFIN, and kSOLA data in parallel
+    const [kubData, jfinData, kSolaData] = await Promise.all([
       fetchKubPrice(),
-      fetchJfinPrice()
+      fetchJfinPrice(),
+      fetchKSolaPrice()
     ]);
     
     return coins.map(coin => {
@@ -110,6 +151,15 @@ export const getCoinsWithLiveData = async (): Promise<Coin[]> => {
           ...coin,
           price: jfinData.price,
           priceChangePercentage24h: jfinData.change,
+          isLive: true
+        };
+      }
+      
+      if (coin.id === "ksola" && kSolaData) {
+        return {
+          ...coin,
+          price: kSolaData.price,
+          priceChangePercentage24h: kSolaData.change,
           isLive: true
         };
       }
