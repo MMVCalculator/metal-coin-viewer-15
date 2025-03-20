@@ -1,27 +1,46 @@
-
 import { useState, useEffect } from "react";
 import CoinCard from "../components/CoinCard";
 import Header from "../components/Header";
-import { getCoins } from "../services/coinService";
+import { getCoinsWithLiveKub } from "../services/coinService";
 import { Coin } from "../types/coin";
+import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
   const [coins, setCoins] = useState<Coin[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Simulate API call with a small delay
+    // Fetch coins with live KUB price
     const fetchCoins = async () => {
       setLoading(true);
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      const data = getCoins();
-      setCoins(data);
-      setLoading(false);
+      try {
+        const data = await getCoinsWithLiveKub();
+        setCoins(data);
+        
+        // Check if we got live KUB data
+        const kubCoin = data.find(coin => coin.id === "kub");
+        if (kubCoin?.isLive) {
+          toast({
+            title: "ราคา KUB อัปเดตแล้ว",
+            description: "ราคา KUB อัปเดตจาก API ของ Bitkub แล้ว",
+            duration: 3000,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching coins:", error);
+        toast({
+          title: "เกิดข้อผิดพลาด",
+          description: "ไม่สามารถดึงข้อมูลราคาเหรียญได้",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchCoins();
-  }, []);
+  }, [toast]);
 
   return (
     <div className="min-h-screen bg-gradient-subtle pb-20">

@@ -4,6 +4,7 @@ import { Coin } from "../types/coin";
 import { formatPrice, calculateValue } from "../services/coinService";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 interface CoinCardProps {
   coin: Coin;
@@ -45,8 +46,15 @@ const CoinCard = ({ coin }: CoinCardProps) => {
               loading="lazy"
             />
           </div>
-          <div>
-            <h3 className="text-xl font-semibold">{coin.name}</h3>
+          <div className="flex flex-col">
+            <div className="flex items-center">
+              <h3 className="text-xl font-semibold">{coin.name}</h3>
+              {coin.isLive && (
+                <Badge variant="outline" className="ml-2 bg-green-50 text-green-700 text-xs border-green-200">
+                  Live
+                </Badge>
+              )}
+            </div>
             <p className="text-sm text-gray-500">{coin.symbol}</p>
           </div>
         </div>

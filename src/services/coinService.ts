@@ -1,7 +1,25 @@
+import { Coin, BitkubTickerResponse } from "../types/coin";
 
-import { Coin } from "../types/coin";
+// Fetch live KUB price from Bitkub API
+export const fetchKubPrice = async (): Promise<{ price: number; change: number } | null> => {
+  try {
+    const response = await fetch("https://api.bitkub.com/api/market/ticker?sym=THB_KUB");
+    const data: BitkubTickerResponse = await response.json();
+    
+    if (data.THB_KUB) {
+      return {
+        price: data.THB_KUB.last,
+        change: parseFloat(data.THB_KUB.percentChange)
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error("Error fetching KUB price:", error);
+    return null;
+  }
+};
 
-// Mock data for our coins
+// Get initial mock data for coins
 export const getCoins = (): Coin[] => {
   return [
     {
@@ -45,6 +63,35 @@ export const getCoins = (): Coin[] => {
       priceChangePercentage24h: -0.75
     }
   ];
+};
+
+// Get coins with live KUB price if available
+export const getCoinsWithLiveKub = async (): Promise<Coin[]> => {
+  const coins = getCoins();
+  
+  try {
+    const kubData = await fetchKubPrice();
+    
+    if (kubData) {
+      // Update KUB with live data
+      return coins.map(coin => {
+        if (coin.id === "kub") {
+          return {
+            ...coin,
+            price: kubData.price,
+            priceChangePercentage24h: kubData.change,
+            isLive: true
+          };
+        }
+        return coin;
+      });
+    }
+  } catch (error) {
+    console.error("Error updating KUB price:", error);
+  }
+  
+  // Return original coins if fetch fails
+  return coins;
 };
 
 // Format price to Thai Baht
