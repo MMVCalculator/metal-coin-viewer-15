@@ -68,6 +68,35 @@ export const fetchKSolaPrice = async (): Promise<{ price: number; change: number
   }
 };
 
+// Fetch iSOLA price using fixed value of 0.241576 JFIN
+export const fetchIsolaPrice = async (): Promise<{ price: number; change: number } | null> => {
+  try {
+    // Fixed value of iSOLA in JFIN
+    const iSolaPriceInJfin = 0.241576;
+    
+    // Get JFIN/THB price to convert iSOLA to THB
+    const jfinData = await fetchJfinPrice();
+    
+    if (jfinData) {
+      // Calculate iSOLA price in THB: iSOLA/JFIN * JFIN/THB
+      const iSolaPriceInThb = iSolaPriceInJfin * jfinData.price;
+      
+      // Since we're using a fixed price, we'll use a default change value
+      const priceChange = 1.75; // Default value
+      
+      return {
+        price: iSolaPriceInThb,
+        change: priceChange
+      };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Error calculating iSOLA price:", error);
+    return null;
+  }
+};
+
 // Get initial mock data for coins
 export const getCoins = (): Coin[] => {
   return [
@@ -114,16 +143,17 @@ export const getCoins = (): Coin[] => {
   ];
 };
 
-// Get coins with live KUB, JFIN, and kSOLA prices if available
+// Get coins with live KUB, JFIN, kSOLA, and iSOLA prices if available
 export const getCoinsWithLiveData = async (): Promise<Coin[]> => {
   const coins = getCoins();
   
   try {
-    // Fetch KUB, JFIN, and kSOLA data in parallel
-    const [kubData, jfinData, kSolaData] = await Promise.all([
+    // Fetch KUB, JFIN, kSOLA, and iSOLA data in parallel
+    const [kubData, jfinData, kSolaData, iSolaData] = await Promise.all([
       fetchKubPrice(),
       fetchJfinPrice(),
-      fetchKSolaPrice()
+      fetchKSolaPrice(),
+      fetchIsolaPrice()
     ]);
     
     return coins.map(coin => {
@@ -150,6 +180,15 @@ export const getCoinsWithLiveData = async (): Promise<Coin[]> => {
           ...coin,
           price: kSolaData.price,
           priceChangePercentage24h: kSolaData.change,
+          isLive: true
+        };
+      }
+      
+      if (coin.id === "isola" && iSolaData) {
+        return {
+          ...coin,
+          price: iSolaData.price,
+          priceChangePercentage24h: iSolaData.change,
           isLive: true
         };
       }
