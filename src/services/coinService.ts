@@ -9,12 +9,31 @@ export const fetchKubPrice = async (): Promise<{ price: number; change: number }
     if (data.THB_KUB) {
       return {
         price: data.THB_KUB.last,
-        change: parseFloat(data.THB_KUB.percentChange)
+        change: data.THB_KUB.percentChange // Using percentChange directly, which is a number
       };
     }
     return null;
   } catch (error) {
     console.error("Error fetching KUB price:", error);
+    return null;
+  }
+};
+
+// Fetch live JFIN price from Bitkub API
+export const fetchJfinPrice = async (): Promise<{ price: number; change: number } | null> => {
+  try {
+    const response = await fetch("https://api.bitkub.com/api/market/ticker?sym=THB_JFIN");
+    const data: BitkubTickerResponse = await response.json();
+    
+    if (data.THB_JFIN) {
+      return {
+        price: data.THB_JFIN.last,
+        change: data.THB_JFIN.percentChange // Using percentChange directly
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error("Error fetching JFIN price:", error);
     return null;
   }
 };
@@ -65,29 +84,40 @@ export const getCoins = (): Coin[] => {
   ];
 };
 
-// Get coins with live KUB price if available
-export const getCoinsWithLiveKub = async (): Promise<Coin[]> => {
+// Get coins with live KUB and JFIN prices if available
+export const getCoinsWithLiveData = async (): Promise<Coin[]> => {
   const coins = getCoins();
   
   try {
-    const kubData = await fetchKubPrice();
+    // Fetch both KUB and JFIN data in parallel
+    const [kubData, jfinData] = await Promise.all([
+      fetchKubPrice(),
+      fetchJfinPrice()
+    ]);
     
-    if (kubData) {
-      // Update KUB with live data
-      return coins.map(coin => {
-        if (coin.id === "kub") {
-          return {
-            ...coin,
-            price: kubData.price,
-            priceChangePercentage24h: kubData.change,
-            isLive: true
-          };
-        }
-        return coin;
-      });
-    }
+    return coins.map(coin => {
+      if (coin.id === "kub" && kubData) {
+        return {
+          ...coin,
+          price: kubData.price,
+          priceChangePercentage24h: kubData.change,
+          isLive: true
+        };
+      }
+      
+      if (coin.id === "jfin" && jfinData) {
+        return {
+          ...coin,
+          price: jfinData.price,
+          priceChangePercentage24h: jfinData.change,
+          isLive: true
+        };
+      }
+      
+      return coin;
+    });
   } catch (error) {
-    console.error("Error updating KUB price:", error);
+    console.error("Error updating live prices:", error);
   }
   
   // Return original coins if fetch fails

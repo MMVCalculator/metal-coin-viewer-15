@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from "react";
 import CoinCard from "../components/CoinCard";
 import Header from "../components/Header";
-import { getCoinsWithLiveKub } from "../services/coinService";
+import { getCoinsWithLiveData } from "../services/coinService";
 import { Coin } from "../types/coin";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -11,19 +12,21 @@ const Index = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Fetch coins with live KUB price
+    // Fetch coins with live prices
     const fetchCoins = async () => {
       setLoading(true);
       try {
-        const data = await getCoinsWithLiveKub();
+        const data = await getCoinsWithLiveData();
         setCoins(data);
         
-        // Check if we got live KUB data
+        // Check if we got live data
         const kubCoin = data.find(coin => coin.id === "kub");
-        if (kubCoin?.isLive) {
+        const jfinCoin = data.find(coin => coin.id === "jfin");
+        
+        if (kubCoin?.isLive || jfinCoin?.isLive) {
           toast({
-            title: "ราคา KUB อัปเดตแล้ว",
-            description: "ราคา KUB อัปเดตจาก API ของ Bitkub แล้ว",
+            title: "ราคาเหรียญอัปเดตแล้ว",
+            description: "ราคาเหรียญอัปเดตจาก API ของ Bitkub แล้ว",
             duration: 3000,
           });
         }

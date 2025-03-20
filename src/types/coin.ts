@@ -20,4 +20,13 @@ export interface BitkubTickerResponse {
     high24hr: number;
     low24hr: number;
   };
+  THB_JFIN?: {
+    last: number;
+    percentChange: number;
+    baseVolume: number;
+    quoteVolume: number;
+    isFrozen: number;
+    high24hr: number;
+    low24hr: number;
+  };
 }
