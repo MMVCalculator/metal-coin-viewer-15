@@ -38,42 +38,32 @@ export const fetchJfinPrice = async (): Promise<{ price: number; change: number 
   }
 };
 
-// Fetch kSOLA/KUB price from GeckoTerminal
+// Fetch kSOLA price using fixed value of 0.02897 KUB
 export const fetchKSolaPrice = async (): Promise<{ price: number; change: number } | null> => {
   try {
-    // GeckoTerminal API for kSOLA/KUB pair on Bitkub Chain
-    const response = await fetch("https://api.geckoterminal.com/api/v2/networks/bitkub_chain/pools/0x930dea5a8a1f51320d9fa80de00f334303df1e71");
-    const data: GeckoTerminalResponse = await response.json();
+    // Fixed value of kSOLA in KUB
+    const kSolaPriceInKub = 0.02897;
     
-    if (data && data.data && data.data.attributes) {
-      // Get kSOLA/KUB price
-      const kSolaPriceInKub = parseFloat(data.data.attributes.base_token_price_native_quote || "0");
-      // Get 24h price change percentage
-      const priceChange = data.data.attributes.price_change_percentage["24h"] || 0;
+    // Get KUB/THB price to convert kSOLA to THB
+    const kubData = await fetchKubPrice();
+    
+    if (kubData) {
+      // Calculate kSOLA price in THB: kSOLA/KUB * KUB/THB
+      const kSolaPriceInThb = kSolaPriceInKub * kubData.price;
       
-      // Get KUB/THB price to convert kSOLA to THB
-      const kubData = await fetchKubPrice();
+      // Since we're using a fixed price, we'll keep the same change value
+      // from the API for consistency in UI
+      const priceChange = 2.21; // Default value matching previous GeckoTerminal response
       
-      if (kubData) {
-        // Calculate kSOLA price in THB: kSOLA/KUB * KUB/THB
-        const kSolaPriceInThb = kSolaPriceInKub * kubData.price;
-        
-        return {
-          price: kSolaPriceInThb,
-          change: priceChange
-        };
-      }
-      
-      // If we can't get KUB price, just return kSOLA/KUB with the change
       return {
-        price: kSolaPriceInKub,
+        price: kSolaPriceInThb,
         change: priceChange
       };
     }
     
     return null;
   } catch (error) {
-    console.error("Error fetching kSOLA price from GeckoTerminal:", error);
+    console.error("Error calculating kSOLA price:", error);
     return null;
   }
 };
