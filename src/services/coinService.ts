@@ -94,16 +94,16 @@ export const getCoins = (): Coin[] => {
       name: "iSOLA",
       symbol: "iSOLA",
       imageUrl: "https://app.x10.games/_next/image?url=https%3A%2F%2Faddressables-dev.metalvalleygame.com%2FImage%2FSOLA_I_CoinWHITE.png&w=256&q=75",
-      price: 18.20,
-      priceChangePercentage24h: -1.24
+      price: 0, // Updated to 0
+      priceChangePercentage24h: 0
     },
     {
       id: "jsola",
       name: "jSOLA",
       symbol: "jSOLA",
       imageUrl: "https://app.x10.games/_next/image?url=https%3A%2F%2Faddressables-dev.metalvalleygame.com%2FImage%2FSOLA_J_CoinBLUE.png&w=256&q=75",
-      price: 32.15,
-      priceChangePercentage24h: 5.67
+      price: 0, // Updated to 0
+      priceChangePercentage24h: 0
     },
     {
       id: "kub",
@@ -174,13 +174,13 @@ export const getCoinsWithLiveData = async (): Promise<Coin[]> => {
   return coins;
 };
 
-// Format price to Thai Baht
+// Format price to Thai Baht with 3 decimal places
 export const formatPrice = (price: number): string => {
   return new Intl.NumberFormat('th-TH', {
     style: 'currency',
     currency: 'THB',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3
   }).format(price);
 };
 
