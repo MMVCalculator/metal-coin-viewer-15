@@ -92,7 +92,7 @@ const Index = () => {
       
       <footer className="mt-20 py-6 text-center text-sm text-gray-500">
         <p>
-          ข้อมูลราคาจำลองเพื่อการสาธิตเท่านั้น ไม่สามารถใช้อ้างอิงได้
+          
         </p>
       </footer>
     </div>
